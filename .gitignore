@@ -1,0 +1,16 @@
+# 系统垃圾
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# 编辑器 / IDE
+.vscode/
+.idea/
+
+# Office 临时文件
+~$*
+
+# 临时与备份
+*.tmp
+*.bak
+*.orig

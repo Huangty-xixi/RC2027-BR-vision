@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RC2027 BR 到底要几个节点（人话版）</title>
+<style>
+:root{--bg:#0a0e17;--panel:#111827;--panel2:#0d1420;--border:#1e293b;--text:#e2e8f0;--dim:#64748b;
+--green:#22c55e;--blue:#3b82f6;--orange:#f59e0b;--red:#ef4444;--cyan:#06b6d4;--purple:#a855f7;--yellow:#eab308;--pink:#ec4899}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;background:var(--bg);color:var(--text);
+padding:24px 20px 60px;line-height:1.85;max-width:1080px;margin:0 auto}
+h1{text-align:center;font-size:1.7em;margin-bottom:6px;background:linear-gradient(135deg,var(--cyan),var(--blue));
+-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+h2{color:var(--green);border-bottom:1px solid var(--border);padding-bottom:8px;margin-top:40px;font-size:1.22em}
+h3{color:var(--orange);margin-top:18px;font-size:1.02em}
+.sub{text-align:center;color:var(--dim);font-size:.88em}
+.card{background:var(--panel);border-radius:14px;padding:18px 20px;margin:14px 0;border:1px solid var(--border)}
+.dim{color:var(--dim);font-size:.9em}
+.mono{font-family:Consolas,monospace;color:var(--cyan);background:#050810;padding:2px 7px;border-radius:4px;font-size:.85em}
+.green{color:var(--green)}.blue{color:var(--blue)}.orange{color:var(--orange)}
+.purple{color:var(--purple)}.yellow{color:var(--yellow)}.pink{color:var(--pink)}.red{color:var(--red)}
+
+.hero{text-align:center;padding:34px 20px;margin:18px 0;border-radius:18px;
+border:1px solid var(--cyan);background:linear-gradient(180deg,#0b1a24,#0d1420)}
+.hero .num{font-size:5.2em;font-weight:bold;line-height:1;color:var(--cyan);
+text-shadow:0 0 28px rgba(6,182,212,.45)}
+.hero .unit{font-size:1.3em;color:var(--cyan);margin-left:8px}
+.hero .line{margin-top:14px;font-size:1.05em}
+.hero .line b{color:var(--orange)}
+
+.split{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
+@media(max-width:760px){.split{grid-template-columns:1fr}}
+.box{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:16px}
+.box.wrong{border-color:var(--red)}
+.box.right{border-color:var(--green)}
+.box h3{margin-top:0}
+
+.crit{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:14px}
+.crit .box{border-color:var(--blue)}
+.crit .n{font-size:1.6em;font-weight:bold;color:var(--blue);line-height:1}
+
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:.9em}
+td,th{padding:8px 10px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}
+th{color:var(--cyan);font-weight:normal}
+td.k{color:var(--cyan);font-family:Consolas,monospace;white-space:nowrap}
+.tag{display:inline-block;padding:1px 7px;border-radius:4px;font-size:.78em;font-weight:bold}
+.tg-c{background:#08222a;color:var(--cyan)}
+.tg-r{background:#3a0a0a;color:var(--red)}
+.note{background:#0a1a2a;border-left:3px solid var(--blue);padding:10px 14px;margin:12px 0;border-radius:0 6px 6px 0;font-size:.92em}
+.ok{background:#08170e;border-left:3px solid var(--green);padding:10px 14px;margin:12px 0;border-radius:0 6px 6px 0;font-size:.92em}
+ul{margin:8px 0 8px 22px}li{margin:5px 0}
+footer{text-align:center;color:var(--dim);margin:44px 0 0;font-size:.78em}
+</style>
+</head>
+<body>
+
+<h1>RC2027 BR 到底要几个节点</h1>
+<p class="sub">人话版 ｜ 2026-10-04</p>
+
+<div class="hero">
+  <div><span class="num">7</span><span class="unit">个</span></div>
+  <div class="line">每台车 <b>7 个节点</b>。之前列了 18 个，现在砍到 7 个。</div>
+  <div class="line dim">砍掉的 11 个<b>不是删功能</b>，是合并了。18 − 11 = 7，账对得上。</div>
+</div>
+
+<div class="card">
+  <b>一句话理解节点关系</b>：车上那套程序像一个微信群。十来个人各干一件事，谁也不给谁打电话，都在群里发消息、看消息。<br>
+  <span class="dim">看任何两个部分的关系，只问一句：这条消息是谁发的、谁需要看？</span>
+</div>
+
+<h2>一、为什么之前拆多了</h2>
+<p>我把两件不同的事当成了一件：</p>
+<div class="split">
+  <div class="box wrong">
+    <h3 class="red">我原来用的标准（错在哪）</h3>
+    <p><b>代码里怎么分文件、分函数</b>——一条规则一个模块。</p>
+    <p class="dim">这个思路本身没错，但它管的是"代码怎么写"，不是"要起几个进程"。</p>
+    <p class="dim">我拿它去决定进程数量，于是保护法则、携带上限、重试这些"就两个 if"的东西，也各起了一个节点。</p>
+  </div>
+  <div class="box right">
+    <h3 class="green">正确的两件事分开看</h3>
+    <p><b>要不要单独起一个进程</b>——只看三条（见下一节）。</p>
+    <p class="dim">模块还是要分，规则还是要一条一个模块；只是模块不必各起一个进程。</p>
+    <p class="dim">模块放在同一个进程里，照样能"一条规则改一处"。</p>
+  </div>
+</div>
+
+<h2>二、起进程的三条标准</h2>
+<p>满足其中一条，才值得拆成独立节点；三条都不满足，就合并。</p>
+<div class="crit">
+  <div class="box">
+    <div class="n">1</div>
+    <h3>能单独喂数据测它吗</h3>
+    <p class="dim">把相机那段录下来回放，只测"看相机的"一个人，别人都不用起。</p>
+  </div>
+  <div class="box">
+    <div class="n">2</div>
+    <h3>频率差一个数量级吗</h3>
+    <p class="dim">视觉 30Hz / 串口 100Hz / 电流环 1kHz。差太多别塞进一个程序，一个卡住全卡住。</p>
+  </div>
+  <div class="box">
+    <div class="n">3</div>
+    <h3>要能单独换、单独关吗</h3>
+    <p class="dim">仿真时只换"看路的"和"传话的"，其他原封不动。</p>
+  </div>
+</div>
+
+<h2>三、精简后的 7 个节点</h2>
+<table>
+  <tr>
+    <th style="width:36px">#</th><th style="width:185px">节点</th>
+    <th>干什么</th><th style="width:200px">为什么必须独立</th>
+  </tr>
+  <tr>
+    <td>1</td><td class="k">mcu_bridge</td>
+    <td>跟板子说话（下行命令、上行状态）</td>
+    <td>全车唯一持串口；仿真时要换成另一个 <span class="tag tg-c">标准 3</span></td>
+  </tr>
+  <tr>
+    <td>2</td><td class="k">odom_fusion</td>
+    <td>算我在哪、在哪一层（地面 / L1 / 传递区 / L2）</td>
+    <td>50Hz 持续算；真车与仿真要换数据源 <span class="tag tg-c">标准 2、3</span></td>
+  </tr>
+  <tr>
+    <td>3</td><td class="k">vision_detector</td>
+    <td>看方块（塔基/中段/塔顶/五色石）、看格子、看塔顶颜色</td>
+    <td>要能录视频回放单独测；还占 GPU <span class="tag tg-c">标准 1、2</span></td>
+  </tr>
+  <tr>
+    <td>4</td><td class="k">mission_fsm</td>
+    <td><b>决策</b>：什么时候干什么。内含保护法则、携带上限、交接、重试四块</td>
+    <td>唯一的决策者，其他节点都是给它情报或替它干活</td>
+  </tr>
+  <tr>
+    <td>5</td><td class="k">build_planner</td>
+    <td>选哪个格子建（打分表：分值 + 公共格 + 距离 − 风险）</td>
+    <td>参数多，要能单独调、能离线测 <span class="tag tg-c">标准 1</span></td>
+  </tr>
+  <tr>
+    <td>6</td><td class="k">chassis_controller</td>
+    <td>让车走：速度、定点、航向保持</td>
+    <td>100Hz 闭环 <span class="tag tg-c">标准 2</span></td>
+  </tr>
+  <tr>
+    <td>7</td><td class="k">mechanism_controller</td>
+    <td>升降、夹爪、翻顶</td>
+    <td>50~100Hz，和底盘不是一个执行器 <span class="tag tg-c">标准 2</span></td>
+  </tr>
+</table>
+<p class="dim">TR 也是 7 个（同一批包，配置不同）。</p>
+
+<h2>四、砍掉的 11 个，各自去哪了</h2>
+<table>
+  <tr><th style="width:38%">原来的节点</th><th>现在</th><th style="width:110px">依据</th></tr>
+  <tr><td class="k">carry_manager <span class="dim">数手上几个</span></td><td>并进 <span class="k">mission_fsm</span>——就两个 if</td><td><span class="tag tg-r">不合格</span></td></tr>
+  <tr><td class="k">protection_guard <span class="dim">保护法则</span></td><td>并进 <span class="k">mission_fsm</span>——就一个 if</td><td><span class="tag tg-r">不合格</span></td></tr>
+  <tr><td class="k">retry_manager <span class="dim">重试</span></td><td>并进 <span class="k">mission_fsm</span>——本来就是流程里的一个阶段</td><td><span class="tag tg-r">不合格</span></td></tr>
+  <tr><td class="k">handoff_coordinator <span class="dim">交接</span></td><td>并进 <span class="k">mission_fsm</span>——同样是阶段</td><td><span class="tag tg-r">不合格</span></td></tr>
+  <tr><td class="k">scoreboard <span class="dim">自估分</span></td><td>删掉，非必需</td><td><span class="tag tg-r">不需要</span></td></tr>
+  <tr><td class="k">zone_monitor <span class="dim">判区域</span></td><td>并进 <span class="k">odom_fusion</span>——纯几何计算，输入就是位姿</td><td><span class="tag tg-r">不合格</span></td></tr>
+  <tr><td class="k">heading_hold <span class="dim">航向保持</span></td><td>并进 <span class="k">chassis_controller</span>——同执行器、同频率</td><td><span class="tag tg-r">同频同类</span></td></tr>
+  <tr><td class="k">goto_controller <span class="dim">定点导航</span></td><td>并进 <span class="k">chassis_controller</span>——它只是底盘的一个模式</td><td><span class="tag tg-r">同频同类</span></td></tr>
+  <tr><td class="k">slot_detector <span class="dim">看格子</span></td><td>并进 <span class="k">vision_detector</span>——同一张图、同一块 GPU</td><td><span class="tag tg-r">同源</span></td></tr>
+  <tr><td class="k">joy_to_cmd <span class="dim">手柄</span></td><td>手柄接收机在板子上，由 <span class="k">mcu_bridge</span> 转发，不用新节点</td><td><span class="tag tg-r">可转发</span></td></tr>
+  <tr><td class="k">pick_planner <span class="dim">TR 拾取</span></td><td>并进 TR 自己的 <span class="k">mission_fsm</span>——同一套阶段机，配置不同</td><td><span class="tag tg-r">同逻辑</span></td></tr>
+</table>
+<div class="ok"><b>18 − 11 = 7。</b>功能一个没少，只是从 18 个进程变成 7 个进程 + 内部模块。</div>
+
+<h2>五、三点补充</h2>
+<div class="card">
+  <h3 style="margin-top:0">1. 厂家驱动另算</h3>
+  <p>相机驱动、雷达驱动、SLAM 都是现成的包，不是我设计的节点，不在 7 个里面。</p>
+
+  <h3>2. 节点少不等于逻辑少</h3>
+  <p><span class="k">mission_fsm</span> 内部还是分模块写的：保护法则一块、携带上限一块、交接一块、重试一块。
+  将来某条规则改了，改的是那一块，不是整个程序——<b>"每条规则一个负责人"的好处保住了，只是不用各起一个进程。</b></p>
+
+  <h3>3. 如果还想再砍</h3>
+  <p>把 <span class="k">build_planner</span> 也并进 <span class="k">mission_fsm</span>，就变成 6 个。
+  代价：调打分参数要重启决策节点，也没法单独测打分表。<b>建议留 7 个。</b></p>
+</div>
+
+<div class="note">
+  <b>为什么决策是一个节点，别的都不是</b>：<br>
+  <span class="k">mission_fsm</span> 是唯一"发号施令"的（什么时候干什么、干完这步下一步干什么）。<br>
+  其余 6 个，要么只报事实（<span class="k">odom_fusion</span>、<span class="k">vision_detector</span>），
+  要么只替它干活（<span class="k">chassis_controller</span>、<span class="k">mechanism_controller</span>、<span class="k">mcu_bridge</span>），
+  要么只提建议（<span class="k">build_planner</span>）。<br>
+  <span class="dim">它们都不参与"决定什么时候干什么"。</span>
+</div>
+
+<footer>RC2027 主赛 BR vision ｜ 生成于 2026-10-04 ｜ 配套：RC2027_ROS2架构清单.md</footer>
+
+</body>
+</html>

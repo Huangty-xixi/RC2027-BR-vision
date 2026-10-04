@@ -1,0 +1,10 @@
+# 统一换行，避免 Windows 与 Ubuntu 之间来回改行尾
+* text=auto eol=lf
+
+# 二进制文件不要动
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.xlsx binary
+*.docx binary
